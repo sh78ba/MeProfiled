@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "./constant";
 
 function App() {
   const [resumeFile, setResumeFile] = useState(null);
@@ -29,7 +30,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5001/analyze",
+        BACKEND_URL+"/analyze",
         formData,
         {
           headers: {

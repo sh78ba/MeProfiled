@@ -1,0 +1,6 @@
+Flask
+Flask-Cors
+PyPDF2
+langchain
+langchain-openai
+python-dotenv

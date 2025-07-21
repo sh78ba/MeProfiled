@@ -29,15 +29,11 @@ function App() {
     formData.append("jobDescription", jobDescription);
 
     try {
-      const response = await axios.post(
-        BACKEND_URL+"/analyze",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(`${BACKEND_URL}/analyze`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setAnalysisResult(response.data);
     } catch (err) {
       setError(err.response?.data?.error || "An unexpected error occurred.");
@@ -46,169 +42,139 @@ function App() {
     }
   };
 
-  // Helper to determine score color
   const getScoreColor = (score) => {
-    if (score >= 85) return "text-green-600";
-    if (score >= 70) return "text-yellow-600";
-    return "text-red-600";
+    if (score >= 85) return "text-success";
+    if (score >= 70) return "text-warning";
+    return "text-danger";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg p-8 space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">
-            AI Agent Resume Analyzer
-          </h1>
-          <p className="text-gray-600 mt-2">
+    <div className="container py-5">
+      <div className="card shadow p-4">
+        <div className="text-center mb-4">
+          <h1 className="display-5 fw-bold">MeProfiled</h1>
+          <p className="text-muted">
             Get an intelligent, in-depth analysis of your resume against any job
             description.
           </p>
         </div>
 
-        {/* Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="resume"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                📄 1. Upload Resume (PDF)
-              </label>
-              <input
-                id="resume"
-                type="file"
-                accept=".pdf"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="job-description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                📋 2. Paste Job Description
-              </label>
-              <textarea
-                id="job-description"
-                rows="10"
-                className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Paste the full job description here..."
-                value={jobDescription}
-                // --- THIS IS THE FIX ---
-                onChange={(e) => setJobDescription(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-lg p-8">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Ready for Analysis?
-            </h2>
-            <p className="text-gray-600 mt-2 mb-4 text-center">
-              Our AI agent will provide a detailed breakdown.
-            </p>
-            <button
-              onClick={handleSubmit}
-              disabled={isLoading || !resumeFile || !jobDescription}
-              className="w-full inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "🤖 Agent is thinking..." : "Analyze Now"}
-            </button>
-          </div>
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="row g-4">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="resume" className="form-label">
+                  📄 1. Upload Resume (PDF)
+                </label>
+                <input
+                  type="file"
+                  className="form-control"
+                  id="resume"
+                  accept=".pdf"
+                  onChange={handleFileChange}
+                  required
+                />
+              </div>
 
-        {/* Error Message */}
+              <div className="mb-3">
+                <label htmlFor="job-description" className="form-label">
+                  📋 2. Paste Job Description
+                </label>
+                <textarea
+                  className="form-control"
+                  id="job-description"
+                  rows="10"
+                  placeholder="Paste the full job description here..."
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="col-md-6 d-flex flex-column justify-content-center align-items-center bg-light rounded p-4">
+              <h4>Ready for Analysis?</h4>
+              <p className="text-muted text-center">
+                Our AI agent will provide a detailed breakdown.
+              </p>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg w-100 mt-3"
+                disabled={isLoading || !resumeFile || !jobDescription}
+              >
+                {isLoading ? "🤖 Agent is thinking..." : "Analyze Now"}
+              </button>
+            </div>
+          </div>
+        </form>
+
         {error && (
-          <div className="mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-            <p>{error}</p>
+          <div className="alert alert-danger mt-4" role="alert">
+            {error}
           </div>
         )}
 
-        {/* Loading Spinner */}
         {isLoading && (
-          <div className="text-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">
+          <div className="text-center my-5">
+            <div className="spinner-border text-primary" role="status"></div>
+            <p className="mt-3 text-muted">
               Analyzing... This may take up to 30 seconds.
             </p>
           </div>
         )}
 
-        {/* Results */}
         {analysisResult && (
-          <div className="pt-8 border-t border-gray-200">
-            <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-              Analysis Report
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Score & Summary */}
-              {/* Score & Summary */}
-              <div className="lg:col-span-1 bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-700">
-                  Match Score
-                </h3>
-                <p
-                  className={`text-7xl font-bold my-2 ${getScoreColor(
-                    analysisResult.matchScore
-                  )}`}
-                >
-                  {analysisResult.matchScore}
-                  <span className="text-3xl text-gray-500">%</span>
-                </p>
-
-                <div className="mt-4 space-y-1 text-sm text-gray-600">
-                  <p>
-                    <span className="font-medium text-gray-700">
-                      Skills Match:
-                    </span>{" "}
-                    {analysisResult.skillsMatchPercent}%
+          <div className="mt-5">
+            <h2 className="text-center fw-bold mb-4">Analysis Report</h2>
+            <div className="row g-4">
+              <div className="col-lg-4">
+                <div className="bg-light p-4 rounded shadow-sm h-100">
+                  <h5 className="fw-bold">Match Score</h5>
+                  <p
+                    className={`display-4 fw-bold my-2 ${getScoreColor(
+                      analysisResult.matchScore
+                    )}`}
+                  >
+                    {analysisResult.matchScore}
+                    <span className="fs-4 text-secondary">%</span>
                   </p>
-                  <p>
-                    <span className="font-medium text-gray-700">
-                      Experience Match:
-                    </span>{" "}
-                    {analysisResult.experienceMatchPercent}%
-                  </p>
-                  <p>
-                    <span className="font-medium text-gray-700">
-                      Keyword Match:
-                    </span>{" "}
-                    {analysisResult.keywordMatchPercent}%
-                  </p>
+                  <ul className="list-unstyled mt-3">
+                    <li>
+                      <strong>Skills Match:</strong>{" "}
+                      {analysisResult.skillsMatchPercent}%
+                    </li>
+                    <li>
+                      <strong>Experience Match:</strong>{" "}
+                      {analysisResult.experienceMatchPercent}%
+                    </li>
+                    <li>
+                      <strong>Keyword Match:</strong>{" "}
+                      {analysisResult.keywordMatchPercent}%
+                    </li>
+                  </ul>
+                  <h6 className="mt-4">Summary</h6>
+                  <p className="text-muted">{analysisResult.summary}</p>
                 </div>
-
-                <h3 className="text-lg font-semibold text-gray-700 mt-6">
-                  Summary
-                </h3>
-                <p className="text-gray-600 text-sm mt-1">
-                  {analysisResult.summary}
-                </p>
               </div>
 
-              {/* Strengths & Improvements */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h3 className="text-xl font-semibold text-green-800 mb-3">
-                    ✅ Strengths
-                  </h3>
-                  <ul className="list-disc list-inside space-y-2 text-green-700">
-                    {analysisResult.strengths.map((item, index) => (
-                      <li key={index}>{item}</li>
+              <div className="col-lg-8">
+                <div className="mb-4 p-4 border border-success rounded bg-white">
+                  <h5 className="text-success fw-bold mb-3">✅ Strengths</h5>
+                  <ul className="list-group list-group-flush">
+                    {analysisResult.strengths.map((item, i) => (
+                      <li key={i} className="list-group-item">
+                        {item}
+                      </li>
                     ))}
                   </ul>
                 </div>
-                <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-                  <h3 className="text-xl font-semibold text-red-800 mb-3">
-                    🔍 Areas for Improvement
-                  </h3>
-                  <ul className="list-disc list-inside space-y-2 text-red-700">
-                    {analysisResult.areasForImprovement.map((item, index) => (
-                      <li key={index}>{item}</li>
+                <div className="p-4 border border-danger rounded bg-white">
+                  <h5 className="text-danger fw-bold mb-3">🔍 Areas for Improvement</h5>
+                  <ul className="list-group list-group-flush">
+                    {analysisResult.areasForImprovement.map((item, i) => (
+                      <li key={i} className="list-group-item">
+                        {item}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -217,6 +183,14 @@ function App() {
           </div>
         )}
       </div>
+      {/* Footer */}
+<footer className=" text-center py-4 mt-5 rounded shadow-sm">
+  <div className="container">
+    <p className="mb-1 fs-5">Made with ❤️ by <strong>Shantanu</strong></p>
+    <p className="mb-0 text-secondary">Empowering your job hunt with AI insights</p>
+  </div>
+</footer>
+
     </div>
   );
 }

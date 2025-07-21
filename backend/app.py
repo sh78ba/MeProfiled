@@ -15,7 +15,10 @@ load_dotenv()
 
 # Flask app initialization
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all domains
+CORS(app, origins=[
+    "http://localhost:5173",
+    "https://me-profiled-frontend.vercel.app"
+])
 
 # PDF text extraction
 def extract_text_from_pdf(pdf_file):

@@ -32,6 +32,10 @@ def extract_text_from_pdf(pdf_file):
         return ""
 
 # AI resume analyzer endpoint
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Hello from Backend"}), 200
+
 @app.route('/analyze', methods=['POST'])
 def analyze_resume():
     if 'resume' not in request.files:

@@ -1,296 +1,127 @@
-# 🤖 MeProfiled – AI-Powered Resume Analyzer
+# MeProfiled - AI Resume Analyzer
 
-An intelligent, production-ready resume analysis tool that uses BERT NLP to evaluate how well your resume matches a job description. Get detailed insights, personalized recommendations, and experience-level specific analysis.
+An AI-powered resume analysis tool that matches resumes with job descriptions using NLP and provides detailed insights.
 
-🔗 **Live App**: [https://me-profiled-frontend.vercel.app](https://me-profiled-frontend.vercel.app)
+## Features
 
----
+- **PDF Resume Upload** - Supports PDF files up to 16MB
+- **Job Description Analysis** - Semantic matching using BERT embeddings
+- **Match Scoring** - Skills, Experience, and Keyword analysis
+- **Experience Level Detection** - Auto-detects intern/fresher/experienced
+- **Personalized Feedback** - Strengths and improvement suggestions
 
-## ✨ Features
-
-### 🎯 Smart Analysis
-- 📄 **PDF Resume Upload** with validation (max 16MB)
-- 📝 **Job Description Matching** using BERT embeddings
-- 🤖 **AI-Powered Insights** with semantic similarity analysis
-- 📊 **Detailed Match Scores** (Skills, Experience, Keywords)
-- 💼 **Experience Level Detection** (Intern, Fresher, Experienced)
-
-### 🚀 Production Ready
-- ⚡ **Fast Processing** with model caching (3-8 seconds)
-- 🔒 **Secure** with file validation and input sanitization
-- 📈 **Scalable** with optimized BERT inference
-- 🎨 **Responsive UI** with real-time validation
-- 🔍 **Comprehensive Logging** and health monitoring
-
-### 📊 Analysis Breakdown
-- **Match Score**: Overall compatibility (0-100%)
-- **Skills Match**: Technical and soft skills alignment
-- **Experience Match**: Work history relevance
-- **Keyword Match**: Job-specific terminology coverage
-- **Strengths**: What you're doing well
-- **Areas for Improvement**: Actionable recommendations
-
----
-
-## 📸 Demo
-
-![MeProfiled Demo](/images/s.png)
-
-> *Smart resume analysis with experience-level specific recommendations*
-
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
-- ⚛️ **React 18** with Vite
-- 🎨 **Bootstrap 5** for UI components
-- 📡 **Axios** for API communication
-- ✅ **Real-time Validation** and error handling
-- 🌐 **Environment-based Configuration**
+- React 18 + Vite
+- Bootstrap 5
+- Axios
+- Environment-based config
 
 ### Backend
-- 🐍 **Python 3.11** with Flask
-- 🤗 **Transformers** (BERT base-uncased)
-- 🧠 **PyTorch** for model inference
-- 📄 **PyPDF2** for PDF text extraction
-- 🔧 **Scikit-learn** for cosine similarity
-- 📊 **Structured Logging** with monitoring
-- 🔒 **Security** with CORS and validation
+- Flask 3.0.0
+- Sentence Transformers (all-MiniLM-L6-v2)
+- PyTorch
+- scikit-learn
+- PyPDF2
 
-### Infrastructure
-- 🚀 **Vercel** (Frontend)
-- 🚂 **Railway/Render** (Backend - recommended)
-- 🐳 **Docker** support included
-- ⚙️ **Gunicorn** for production server
-- 📦 **LRU Caching** for performance
+### NLP/AI
+- BERT-based sentence embeddings
+- Cosine similarity matching
+- Enhanced keyword extraction with bigrams
+- Sigmoid score boosting
 
----
+## Project Structure
 
-## 📦 Installation & Setup
+```
+MeProfiled/
+├── backend/
+│   ├── app.py              # Flask application
+│   ├── config.py           # Configuration
+│   ├── models.py           # BERT model management
+│   ├── routes.py           # API endpoints
+│   ├── requirements.txt    # Python dependencies
+│   ├── services/
+│   │   └── analyzer.py     # Resume analysis logic
+│   └── utils/
+│       ├── pdf_utils.py    # PDF processing
+│       └── text_utils.py   # Text extraction & keywords
+└── frontend/
+    ├── src/
+    │   ├── App.jsx         # Main React component
+    │   └── constant.js     # Backend URL config
+    └── package.json        # Node dependencies
+```
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- pip & npm
+## Setup & Installation
 
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python3.11 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Create .env file
 cp .env.example .env
+# Edit .env and set ALLOWED_ORIGINS
 
-# Run development server
+# Run
 python app.py
-
-# Or run with gunicorn (production)
-gunicorn app:app --workers 2 --timeout 120
 ```
 
-### Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
 
 # Create .env file
-cp .env.local.example .env.local
+echo "VITE_BACKEND_URL=http://localhost:5001" > .env
 
-# Run development server
+# Run
 npm run dev
-
-# Build for production
-npm run build
 ```
 
----
+## Environment Variables
 
-## 🚀 Production Deployment
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions including:
-- Railway deployment (recommended for ML models)
-- Render deployment
-- Docker deployment
-- Vercel deployment
-- Environment configuration
-- Performance optimization tips
-
-### Quick Deploy
-
-**Backend (Railway):**
-```bash
-railway login
-railway init
-railway up
+### Backend (.env)
 ```
-
-**Frontend (Vercel):**
-```bash
-vercel --prod
-```
-
----
-
-## 📡 API Endpoints
-
-### `POST /analyze`
-Analyze resume against job description
-
-**Request:**
-```bash
-curl -X POST http://localhost:5001/analyze \
-  -F "resume=@resume.pdf" \
-  -F "jobDescription=Your job description here..." \
-  -F "experienceLevel=auto"
-```
-
-**Response:**
-```json
-{
-  "matchScore": 78,
-  "skillsMatchPercent": 82,
-  "experienceMatchPercent": 75,
-  "keywordMatchPercent": 70,
-  "experienceLevel": "fresher",
-  "summary": "Moderate match with 78% overall compatibility...",
-  "strengths": ["Strong technical skills alignment..."],
-  "areasForImprovement": ["Enhance experience section..."],
-  "processingTime": 4.23
-}
-```
-
-### `GET /health`
-Health check endpoint
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-12-05T10:30:00",
-  "model_loaded": true
-}
-```
-
----
-
-## 🎯 Key Features Explained
-
-### Experience-Level Adaptive Scoring
-
-The system automatically detects and adjusts scoring based on candidate level:
-
-| Level | Skills Weight | Experience Weight | Keywords Weight |
-|-------|---------------|-------------------|-----------------|
-| Intern | 60% | 20% | 20% |
-| Fresher | 55% | 30% | 15% |
-| Experienced | 50% | 40% | 10% |
-
-### BERT-Based Semantic Analysis
-
-- Uses `bert-base-uncased` for text embeddings
-- Cosine similarity for semantic matching
-- Keyword extraction with stop word filtering
-- Combines semantic understanding with keyword matching
-
-### Production Optimizations
-
-- **Lazy Loading**: Model loads on first request
-- **Caching**: LRU cache for embeddings (128 items)
-- **Validation**: Comprehensive input validation
-- **Error Handling**: Graceful error messages
-- **Monitoring**: Structured logging with timestamps
-- **Security**: File size limits, type validation, CORS
-
----
-
-## 🔧 Configuration
-
-### Backend Environment Variables
-
-```bash
 FLASK_ENV=production
 PORT=5001
-ALLOWED_ORIGINS=https://your-frontend.vercel.app
-LOG_LEVEL=INFO
+ALLOWED_ORIGINS=http://localhost:5173,https://your-frontend.vercel.app
 ```
 
-### Frontend Environment Variables
-
-```bash
-VITE_BACKEND_URL=https://your-backend.railway.app
+### Frontend (.env)
+```
+VITE_BACKEND_URL=http://localhost:5001
 ```
 
----
+## API Endpoints
 
-## 📊 Performance Metrics
+- `GET /` - Welcome message
+- `GET /health` - Health check
+- `POST /analyze` - Analyze resume against job description
 
-- **Cold Start**: ~10-15 seconds (model loading)
-- **Warm Requests**: 3-8 seconds per analysis
-- **Memory Usage**: ~500MB (BERT model)
-- **Max File Size**: 16MB
-- **Concurrent Requests**: 2-4 workers
+## How It Works
 
----
+1. **Upload Resume** - User uploads PDF resume and enters job description
+2. **Text Extraction** - PyPDF2 extracts text from PDF
+3. **Embeddings** - BERT model generates embeddings for resume and JD
+4. **Similarity** - Cosine similarity calculates semantic match
+5. **Keywords** - Enhanced extraction identifies technical terms and phrases
+6. **Scoring** - Weighted algorithm computes match scores
+7. **Analysis** - Generates personalized feedback and recommendations
 
-## 🐛 Troubleshooting
+## Key Features Implementation
 
-**Model Loading Issues:**
-```bash
-python -c "from transformers import AutoTokenizer, AutoModel; \
-    AutoTokenizer.from_pretrained('bert-base-uncased'); \
-    AutoModel.from_pretrained('bert-base-uncased')"
-```
+- **Experience Detection**: Pattern matching for intern/fresher/experienced keywords
+- **Adaptive Scoring**: Different weight distributions per experience level
+- **Score Boosting**: Sigmoid function for realistic score ranges (30-95%)
+- **Keyword Matching**: Bigrams, partial matching, tech term detection
+- **Model Caching**: LRU cache for embeddings, lazy model loading
 
-**Timeout Issues:**
-- Increase timeout in `gunicorn` or frontend axios config
-- Check network connectivity
-- Monitor server resources
+## License
 
-**PDF Extraction Issues:**
-- Ensure PDF contains selectable text (not scanned images)
-- Check file is not encrypted
-- Verify file size is under 16MB
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
----
-
-## 📄 License
-
-MIT License - feel free to use this project for personal or commercial purposes.
-
----
-
-## 👨‍💻 Author
-
-**Shantanu Basumatary**
-- GitHub: [@sh78ba](https://github.com/sh78ba)
-- Project: [MeProfiled](https://github.com/sh78ba/MeProfiled)
-
----
-
-## 🙏 Acknowledgments
-
-- Built with [BERT](https://huggingface.co/bert-base-uncased) from Hugging Face
-- UI components from [Bootstrap](https://getbootstrap.com/)
-- Deployed on [Vercel](https://vercel.com/) and [Railway](https://railway.app/)
-
----
-
-Made with ❤️ for job seekers worldwide
-
+MIT

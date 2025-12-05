@@ -54,7 +54,8 @@ coverage.xml
 
 # Local env files or credentials
 .env
-.env.*
+.env.local
+.env.*.local
 *.local
 
 # Django-specific

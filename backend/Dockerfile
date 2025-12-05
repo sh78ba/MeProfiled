@@ -10,6 +10,9 @@ COPY . .
 ENV PYTHONUNBUFFERED=1 \
     HF_HOME=/tmp/huggingface \
     MALLOC_TRIM_THRESHOLD_=100000 \
-    MALLOC_MMAP_THRESHOLD_=100000
+    MALLOC_MMAP_THRESHOLD_=100000 \
+    PORT=7860
 
-CMD gunicorn --bind 0.0.0.0:${PORT:-5001} --workers 1 --threads 1 --timeout 180 --worker-class sync --max-requests 10 --max-requests-jitter 5 app:app
+EXPOSE 7860
+
+CMD gunicorn --bind 0.0.0.0:7860 --workers 1 --threads 1 --timeout 180 --worker-class sync --max-requests 10 --max-requests-jitter 5 app:app

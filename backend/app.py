@@ -65,8 +65,6 @@ def create_app():
 if __name__ == '__main__':
     print(f"Starting server on {config.HOST}:{config.PORT} (debug={config.DEBUG})")
     
-    # Pre-load model in production
-    if not config.DEBUG:
-        preload_model()
+    # Don't pre-load model to save memory - load on first request
     
     app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)

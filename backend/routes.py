@@ -126,11 +126,16 @@ def analyze_resume():
         processing_time = (datetime.now() - start_time).total_seconds()
         print(f"Analysis completed in {processing_time:.2f} seconds")
         analysis_result['processingTime'] = round(processing_time, 2)
+        
+        # Force garbage collection after analysis to free memory
+        gc.collect()
 
         return jsonify(analysis_result), 200
 
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
+        # Clean up on error
+        gc.collect()
         return jsonify({
             'error': 'An unexpected error occurred during analysis. Please try again or contact support if the issue persists.',
             'details': str(e) if config.DEBUG else None

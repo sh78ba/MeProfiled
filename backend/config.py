@@ -23,11 +23,11 @@ class Config:
     ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*').split(',')
     CORS_MAX_AGE = 3600
     
-    # Model settings - smallest model for 512MB memory limit
-    MODEL_NAME = os.getenv('MODEL_NAME', 'paraphrase-MiniLM-L3-v2')  # Smallest model (61MB)
-    MAX_TEXT_LENGTH = 5000
-    MAX_SEQUENCE_LENGTH = 512
-    EMBEDDINGS_CACHE_SIZE = 32  # Reduced cache for memory
+    # Model settings - ultra-light model for 512MB memory limit
+    MODEL_NAME = os.getenv('MODEL_NAME', 'distiluse-base-multilingual-cased-v2')  # 50MB distilled model
+    MAX_TEXT_LENGTH = 2000  # Aggressive reduction
+    MAX_SEQUENCE_LENGTH = 256  # Reduced from 384
+    EMBEDDINGS_CACHE_SIZE = 8  # Ultra minimal cache
     
     # Validation settings
     MIN_JOB_DESCRIPTION_LENGTH = 50

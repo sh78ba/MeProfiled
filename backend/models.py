@@ -9,8 +9,7 @@ from config import get_config
 
 config = get_config()
 
-# Set cache directories for serverless
-os.environ.setdefault('TRANSFORMERS_CACHE', '/tmp/transformers')
+# Set cache directories for serverless (using HF_HOME for transformers v5+ compatibility)
 os.environ.setdefault('HF_HOME', '/tmp/huggingface')
 
 # Global variable for model caching
@@ -19,7 +18,7 @@ _model = None
 
 def get_model():
     """
-    Get sentence transformer model with lazy loading and memory optimization
+    Get sentence transformer model with aggressive memory optimization
     
     Returns:
         SentenceTransformer: Loaded model
@@ -27,18 +26,19 @@ def get_model():
     global _model
     if _model is None:
         print(f"Loading sentence transformer model: {config.MODEL_NAME}...")
+        # Force garbage collection before loading
+        gc.collect()
         _model = SentenceTransformer(
             config.MODEL_NAME,
-            device='cpu',  # Force CPU to reduce memory
-            cache_folder='/tmp/transformers'  # Use tmp for serverless
+            device='cpu'  # Force CPU to reduce memory
         )
-        # Force garbage collection after loading
+        # Aggressive memory cleanup after loading
         gc.collect()
         print("Model loaded successfully")
     return _model
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=16)
 def get_bert_embeddings_cached(text_hash):
     """
     Cached version of get_bert_embeddings
@@ -73,7 +73,12 @@ def get_bert_embeddings(text):
             text = text[:config.MAX_TEXT_LENGTH]
         
         # Generate embeddings (sentence-transformers handles tokenization internally)
-        embeddings = model.encode(text, convert_to_numpy=True, show_progress_bar=False)
+        embeddings = model.encode(
+            text, 
+            convert_to_numpy=True, 
+            show_progress_bar=False,
+            batch_size=1  # Process one at a time to minimize memory spike
+        )
         
         # Force garbage collection to free memory
         gc.collect()
@@ -83,6 +88,18 @@ def get_bert_embeddings(text):
     except Exception as e:
         print(f"Error generating embeddings: {str(e)}")
         raise
+
+
+def clear_model():
+    """
+    Clear model from memory (for emergency memory management)
+    """
+    global _model
+    if _model is not None:
+        del _model
+        _model = None
+        gc.collect()
+        print("Model cleared from memory")
 
 
 def preload_model():

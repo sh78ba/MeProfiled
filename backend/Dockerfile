@@ -8,7 +8,6 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 COPY . .
 
 ENV PYTHONUNBUFFERED=1 \
-    TRANSFORMERS_CACHE=/tmp/transformers \
     HF_HOME=/tmp/huggingface \
     PATH=/root/.local/bin:$PATH \
     MALLOC_TRIM_THRESHOLD_=100000 \

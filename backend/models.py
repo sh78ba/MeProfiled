@@ -2,13 +2,14 @@
 Sentence transformer model management and embeddings generation
 """
 import os
+import gc
 from functools import lru_cache
 from sentence_transformers import SentenceTransformer
 from config import get_config
 
 config = get_config()
 
-# Set cache directories for Vercel
+# Set cache directories for serverless
 os.environ.setdefault('TRANSFORMERS_CACHE', '/tmp/transformers')
 os.environ.setdefault('HF_HOME', '/tmp/huggingface')
 
@@ -31,6 +32,8 @@ def get_model():
             device='cpu',  # Force CPU to reduce memory
             cache_folder='/tmp/transformers'  # Use tmp for serverless
         )
+        # Force garbage collection after loading
+        gc.collect()
         print("Model loaded successfully")
     return _model
 
@@ -70,7 +73,10 @@ def get_bert_embeddings(text):
             text = text[:config.MAX_TEXT_LENGTH]
         
         # Generate embeddings (sentence-transformers handles tokenization internally)
-        embeddings = model.encode(text, convert_to_numpy=True)
+        embeddings = model.encode(text, convert_to_numpy=True, show_progress_bar=False)
+        
+        # Force garbage collection to free memory
+        gc.collect()
         
         # Reshape to 2D array for consistency with sklearn
         return embeddings.reshape(1, -1)

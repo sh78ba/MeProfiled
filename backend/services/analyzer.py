@@ -8,7 +8,7 @@ from utils import extract_keywords
 
 def calculate_match_score(resume_text, job_description, experience_level='auto'):
     """
-    Calculate match scores between resume and job description
+    Calculate match scores between resume and job description with improved algorithm
     
     Args:
         resume_text: Resume text string
@@ -25,36 +25,51 @@ def calculate_match_score(resume_text, job_description, experience_level='auto')
     # Calculate semantic similarity (0 to 1)
     semantic_similarity = cosine_similarity(resume_emb, job_emb)[0][0]
     
-    # Extract keywords
+    # Boost semantic similarity (accounts for model limitations)
+    # Apply sigmoid-like boosting to make scores more realistic
+    boosted_similarity = 1 / (1 + pow(2.718, -5 * (semantic_similarity - 0.5)))
+    
+    # Extract keywords with enhanced extraction
     resume_keywords = extract_keywords(resume_text)
     job_keywords = extract_keywords(job_description)
     
-    # Calculate keyword match
+    # Calculate keyword match with partial matching
     common_keywords = resume_keywords.intersection(job_keywords)
+    
+    # Partial keyword matching (for variations like "python" vs "python3")
+    partial_matches = set()
+    for jk in job_keywords:
+        for rk in resume_keywords:
+            if len(jk) > 3 and len(rk) > 3:
+                if jk in rk or rk in jk:
+                    partial_matches.add(jk)
+    
+    common_keywords.update(partial_matches)
     keyword_match = len(common_keywords) / len(job_keywords) if len(job_keywords) > 0 else 0
     
     # Adjust weights based on experience level
     if experience_level == 'intern':
-        # For interns: focus more on skills and keywords, less on experience
-        skills_weight = 0.60
-        experience_weight = 0.20
-        keyword_weight = 0.20
-        skills_match = int((semantic_similarity * 0.5 + keyword_match * 0.5) * 100)
-    elif experience_level == 'fresher':
-        # For freshers: balance skills and keywords, moderate experience
-        skills_weight = 0.55
-        experience_weight = 0.30
-        keyword_weight = 0.15
-        skills_match = int((semantic_similarity * 0.6 + keyword_match * 0.4) * 100)
-    else:  # experienced
-        # For experienced: traditional weighting
+        # For interns: prioritize skills and learning potential
         skills_weight = 0.50
-        experience_weight = 0.40
-        keyword_weight = 0.10
-        skills_match = int((semantic_similarity * 0.7 + keyword_match * 0.3) * 100)
+        experience_weight = 0.25
+        keyword_weight = 0.25
+        # Skills calculation emphasizes keyword match for interns
+        skills_match = int((boosted_similarity * 0.4 + keyword_match * 0.6) * 100)
+    elif experience_level == 'fresher':
+        # For freshers: balanced approach
+        skills_weight = 0.45
+        experience_weight = 0.35
+        keyword_weight = 0.20
+        skills_match = int((boosted_similarity * 0.5 + keyword_match * 0.5) * 100)
+    else:  # experienced
+        # For experienced: semantic understanding matters more
+        skills_weight = 0.40
+        experience_weight = 0.45
+        keyword_weight = 0.15
+        skills_match = int((boosted_similarity * 0.65 + keyword_match * 0.35) * 100)
     
-    # Experience match: based on semantic similarity
-    experience_match = int(semantic_similarity * 100)
+    # Experience match with boosting
+    experience_match = int(boosted_similarity * 100)
     
     # Keyword match percentage
     keyword_match_percent = int(keyword_match * 100)
@@ -65,6 +80,9 @@ def calculate_match_score(resume_text, job_description, experience_level='auto')
         (experience_match * experience_weight) + 
         (keyword_match_percent * keyword_weight)
     )
+    
+    # Apply reasonable floor/ceiling
+    match_score = max(30, min(95, match_score))  # Keep between 30-95%
     
     return match_score, skills_match, experience_match, keyword_match_percent, common_keywords
 

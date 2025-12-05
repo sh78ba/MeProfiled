@@ -1,33 +1,29 @@
 """
-BERT model management and embeddings generation
+Sentence transformer model management and embeddings generation
 """
-import torch
 from functools import lru_cache
-from transformers import AutoTokenizer, AutoModel
+from sentence_transformers import SentenceTransformer
 from config import get_config
 
 config = get_config()
 
-# Global variables for model caching
-_tokenizer = None
+# Global variable for model caching
 _model = None
 
 
-def get_model_and_tokenizer():
+def get_model():
     """
-    Get BERT model and tokenizer with lazy loading
+    Get sentence transformer model with lazy loading
     
     Returns:
-        tuple: (tokenizer, model)
+        SentenceTransformer: Loaded model
     """
-    global _tokenizer, _model
-    if _tokenizer is None or _model is None:
-        print("Loading BERT model and tokenizer...")
-        _tokenizer = AutoTokenizer.from_pretrained(config.MODEL_NAME)
-        _model = AutoModel.from_pretrained(config.MODEL_NAME)
-        _model.eval()  # Set to evaluation mode
-        print("BERT model loaded successfully")
-    return _tokenizer, _model
+    global _model
+    if _model is None:
+        print(f"Loading sentence transformer model: {config.MODEL_NAME}...")
+        _model = SentenceTransformer(config.MODEL_NAME)
+        print("Model loaded successfully")
+    return _model
 
 
 @lru_cache(maxsize=128)
@@ -46,40 +42,29 @@ def get_bert_embeddings_cached(text_hash):
 
 def get_bert_embeddings(text):
     """
-    Generate BERT embeddings for text
+    Generate embeddings for text using sentence transformers
     
     Args:
         text: Input text string
         
     Returns:
-        numpy.ndarray: Text embeddings
+        numpy.ndarray: Text embeddings (2D array)
         
     Raises:
         Exception: If embedding generation fails
     """
     try:
-        tokenizer, model = get_model_and_tokenizer()
+        model = get_model()
         
         # Truncate text if too long
         if len(text) > config.MAX_TEXT_LENGTH:
             text = text[:config.MAX_TEXT_LENGTH]
         
-        # Tokenize and encode
-        inputs = tokenizer(
-            text, 
-            return_tensors='pt', 
-            truncation=True, 
-            max_length=config.MAX_SEQUENCE_LENGTH, 
-            padding=True
-        )
+        # Generate embeddings (sentence-transformers handles tokenization internally)
+        embeddings = model.encode(text, convert_to_numpy=True)
         
-        # Get model output
-        with torch.no_grad():
-            outputs = model(**inputs)
-        
-        # Use mean pooling on token embeddings
-        embeddings = outputs.last_hidden_state.mean(dim=1)
-        return embeddings.numpy()
+        # Reshape to 2D array for consistency with sklearn
+        return embeddings.reshape(1, -1)
     except Exception as e:
         print(f"Error generating embeddings: {str(e)}")
         raise
@@ -87,8 +72,8 @@ def get_bert_embeddings(text):
 
 def preload_model():
     """
-    Pre-load the BERT model (useful for production)
+    Pre-load the model (useful for production)
     """
-    print("Pre-loading BERT model...")
-    get_model_and_tokenizer()
+    print("Pre-loading sentence transformer model...")
+    get_model()
     print("Model pre-loaded successfully")

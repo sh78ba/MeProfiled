@@ -22,9 +22,9 @@ def home():
 def health_check():
     """Health check endpoint"""
     try:
-        from models import get_model_and_tokenizer
+        from models import get_model
         # Check if model is loaded
-        tokenizer, model = get_model_and_tokenizer()
+        model = get_model()
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),

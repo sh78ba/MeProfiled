@@ -8,3 +8,8 @@ __pycache__/
 venv/
 *.log
 .DS_Store
+*.ipynb
+tests/
+.pytest_cache/
+.coverage
+htmlcov/

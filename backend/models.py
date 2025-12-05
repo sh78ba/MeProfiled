@@ -1,11 +1,16 @@
 """
 Sentence transformer model management and embeddings generation
 """
+import os
 from functools import lru_cache
 from sentence_transformers import SentenceTransformer
 from config import get_config
 
 config = get_config()
+
+# Set cache directories for Vercel
+os.environ.setdefault('TRANSFORMERS_CACHE', '/tmp/transformers')
+os.environ.setdefault('HF_HOME', '/tmp/huggingface')
 
 # Global variable for model caching
 _model = None
@@ -13,7 +18,7 @@ _model = None
 
 def get_model():
     """
-    Get sentence transformer model with lazy loading
+    Get sentence transformer model with lazy loading and memory optimization
     
     Returns:
         SentenceTransformer: Loaded model
@@ -21,7 +26,11 @@ def get_model():
     global _model
     if _model is None:
         print(f"Loading sentence transformer model: {config.MODEL_NAME}...")
-        _model = SentenceTransformer(config.MODEL_NAME)
+        _model = SentenceTransformer(
+            config.MODEL_NAME,
+            device='cpu',  # Force CPU to reduce memory
+            cache_folder='/tmp/transformers'  # Use tmp for serverless
+        )
         print("Model loaded successfully")
     return _model
 

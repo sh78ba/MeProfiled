@@ -27,7 +27,7 @@ class Config:
     CORS_MAX_AGE = 3600
     
     # Model settings
-    MODEL_NAME = os.getenv('MODEL_NAME', 'sentence-transformers/all-MiniLM-L6-v2')  # Lighter model
+    MODEL_NAME = os.getenv('MODEL_NAME', 'paraphrase-MiniLM-L3-v2')  # Ultra-light model (61MB)
     MAX_TEXT_LENGTH = 5000
     MAX_SEQUENCE_LENGTH = 512
     EMBEDDINGS_CACHE_SIZE = 128

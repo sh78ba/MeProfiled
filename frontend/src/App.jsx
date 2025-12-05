@@ -76,10 +76,14 @@ function App() {
       console.error('Analysis error:', err);
       if (err.code === 'ECONNABORTED') {
         setError("Request timed out. Please try again.");
+      } else if (err.code === 'ERR_NETWORK') {
+        setError("Unable to connect to server. The backend service may be starting up (first request takes ~30 seconds) or temporarily unavailable. Please try again in a moment.");
       } else if (err.response?.status === 413) {
         setError("File is too large. Maximum size is 16MB.");
-      } else if (err.response?.status === 503) {
-        setError("Service temporarily unavailable. Please try again in a moment.");
+      } else if (err.response?.status === 502 || err.response?.status === 503) {
+        setError("Server is starting up or temporarily unavailable. Please wait 30 seconds and try again.");
+      } else if (err.response?.status === 504) {
+        setError("Request timeout. The analysis is taking longer than expected. Please try again.");
       } else {
         setError(err.response?.data?.error || "An unexpected error occurred. Please try again.");
       }

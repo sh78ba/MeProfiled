@@ -22,7 +22,7 @@ class Config:
     # CORS settings
     ALLOWED_ORIGINS = os.getenv(
         'ALLOWED_ORIGINS', 
-        'http://localhost:5173,https://me-profiled-frontend.vercel.app'
+        'http://localhost:5173,https://me-profiled-frontend.vercel.app,https://*.vercel.app'
     ).split(',')
     CORS_MAX_AGE = 3600
     

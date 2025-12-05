@@ -18,8 +18,16 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH
 app.config['UPLOAD_EXTENSIONS'] = config.UPLOAD_EXTENSIONS
 
-# Configure CORS
-CORS(app, origins=config.ALLOWED_ORIGINS, max_age=config.CORS_MAX_AGE)
+# Configure CORS with more permissive settings for production
+CORS(app, 
+     resources={r"/*": {
+         "origins": config.ALLOWED_ORIGINS,
+         "methods": ["GET", "POST", "OPTIONS"],
+         "allow_headers": ["Content-Type"],
+         "expose_headers": ["Content-Type"],
+         "supports_credentials": False,
+         "max_age": config.CORS_MAX_AGE
+     }})
 
 # Register blueprints
 app.register_blueprint(api)

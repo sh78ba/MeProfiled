@@ -2,6 +2,7 @@
 API routes for the application
 """
 import io
+import gc
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from config import get_config

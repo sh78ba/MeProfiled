@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "./constant";
+import { BACKEND_URL, API_CONFIG, MODEL_CONFIG, MESSAGES, EXPERIENCE_LEVELS } from "./config";
 
 function App() {
   const [resumeFile, setResumeFile] = useState(null);
@@ -13,16 +13,15 @@ function App() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (16MB max)
-      const maxSize = 16 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setError("File size must be less than 16MB");
+      // Validate file size
+      if (file.size > API_CONFIG.maxFileSize) {
+        setError(MESSAGES.FILE_TOO_LARGE);
         e.target.value = null;
         return;
       }
       // Validate file type
-      if (file.type !== 'application/pdf') {
-        setError("Only PDF files are allowed");
+      if (!API_CONFIG.allowedFileTypes.includes(file.type)) {
+        setError(MESSAGES.INVALID_FILE_TYPE);
         e.target.value = null;
         return;
       }
@@ -40,13 +39,13 @@ function App() {
       return;
     }
 
-    if (jobDescription.trim().length < 50) {
-      setError("Job description must be at least 50 characters long.");
+    if (jobDescription.trim().length < API_CONFIG.minJobDescriptionLength) {
+      setError(MESSAGES.JOB_DESC_TOO_SHORT);
       return;
     }
 
-    if (jobDescription.length > 10000) {
-      setError("Job description must be less than 10,000 characters.");
+    if (jobDescription.length > API_CONFIG.maxJobDescriptionLength) {
+      setError(MESSAGES.JOB_DESC_TOO_LONG);
       return;
     }
 
@@ -64,7 +63,7 @@ function App() {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 120000, // 2 minutes timeout
+        timeout: API_CONFIG.timeout,
       });
       setAnalysisResult(response.data);
       
@@ -75,17 +74,17 @@ function App() {
     } catch (err) {
       console.error('Analysis error:', err);
       if (err.code === 'ECONNABORTED') {
-        setError("Request timed out. Please try again.");
+        setError(MESSAGES.TIMEOUT_ERROR);
       } else if (err.code === 'ERR_NETWORK') {
-        setError("Unable to connect to server. The backend service may be starting up (first request takes ~30 seconds) or temporarily unavailable. Please try again in a moment.");
+        setError(MESSAGES.NETWORK_ERROR);
       } else if (err.response?.status === 413) {
-        setError("File is too large. Maximum size is 16MB.");
+        setError(MESSAGES.FILE_TOO_LARGE);
       } else if (err.response?.status === 502 || err.response?.status === 503) {
-        setError("Server is starting up or temporarily unavailable. Please wait 30 seconds and try again.");
+        setError(MESSAGES.SERVER_STARTING);
       } else if (err.response?.status === 504) {
-        setError("Request timeout. The analysis is taking longer than expected. Please try again.");
+        setError(MESSAGES.TIMEOUT_ERROR);
       } else {
-        setError(err.response?.data?.error || "An unexpected error occurred. Please try again.");
+        setError(err.response?.data?.error || MESSAGES.SERVER_ERROR);
       }
     } finally {
       setIsLoading(false);
@@ -104,8 +103,10 @@ function App() {
         <div className="text-center mb-4">
           <h1 className="display-5 fw-bold">MeProfiled</h1>
           <p className="text-muted">
-            Get an intelligent, in-depth analysis of your resume against any job
-            description.
+            Powered by <strong>{MODEL_CONFIG.name}</strong> - {MODEL_CONFIG.description}
+          </p>
+          <p className="small text-secondary">
+            {MODEL_CONFIG.qualityLevel} • Max {API_CONFIG.maxJobDescriptionLength.toLocaleString()} characters • {API_CONFIG.maxFileSize / 1024 / 1024}MB file limit
           </p>
         </div>
 
@@ -143,12 +144,15 @@ function App() {
                   value={experienceLevel}
                   onChange={(e) => setExperienceLevel(e.target.value)}
                 >
-                  <option value="auto">Auto Detect</option>
-                  <option value="intern">Intern</option>
-                  <option value="fresher">Fresher (0-2 years)</option>
-                  <option value="experienced">Experienced (3+ years)</option>
+                  {EXPERIENCE_LEVELS.map(level => (
+                    <option key={level.value} value={level.value}>
+                      {level.label}
+                    </option>
+                  ))}
                 </select>
-                <small className="text-muted">Select your experience level or let AI detect it automatically</small>
+                <small className="text-muted">
+                  {EXPERIENCE_LEVELS.find(l => l.value === experienceLevel)?.description}
+                </small>
               </div>
 
               <div className="mb-3">
@@ -163,12 +167,12 @@ function App() {
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   required
-                  maxLength={10000}
+                  maxLength={API_CONFIG.maxJobDescriptionLength}
                 ></textarea>
                 <small className="text-muted">
-                  {jobDescription.length} / 10,000 characters
-                  {jobDescription.length > 0 && jobDescription.length < 50 && (
-                    <span className="text-danger"> (minimum 50 characters)</span>
+                  {jobDescription.length} / {API_CONFIG.maxJobDescriptionLength.toLocaleString()} characters
+                  {jobDescription.length > 0 && jobDescription.length < API_CONFIG.minJobDescriptionLength && (
+                    <span className="text-danger"> (minimum {API_CONFIG.minJobDescriptionLength} characters)</span>
                   )}
                 </small>
               </div>
@@ -177,15 +181,20 @@ function App() {
             <div className="col-md-6 d-flex flex-column justify-content-center align-items-center bg-light rounded p-4">
               <h4>Ready for Analysis?</h4>
               <p className="text-muted text-center">
-                Our AI agent will provide a detailed breakdown.
+                Our advanced {MODEL_CONFIG.name} model provides detailed, accurate analysis
               </p>
               <button
                 type="submit"
                 className="btn btn-primary btn-lg w-100 mt-3"
                 disabled={isLoading || !resumeFile || !jobDescription}
               >
-                {isLoading ? "🤖 Agent is thinking..." : "Analyze Now"}
+                {isLoading ? "🤖 AI Agent analyzing..." : "🚀 Analyze with Advanced NLP"}
               </button>
+              {!isLoading && (
+                <small className="text-muted mt-2 text-center">
+                  Analysis time: 30-60 seconds
+                </small>
+              )}
             </div>
           </div>
         </form>
@@ -200,8 +209,11 @@ function App() {
           <div className="text-center my-5">
             <div className="spinner-border text-primary" role="status"></div>
             <p className="mt-3 text-muted">
-              Analyzing... This may take up to 30 seconds.
+              {MESSAGES.ANALYZING}
             </p>
+            <small className="text-secondary">
+              Using {MODEL_CONFIG.name} for enhanced accuracy
+            </small>
           </div>
         )}
 

@@ -25,64 +25,84 @@ def calculate_match_score(resume_text, job_description, experience_level='auto')
     # Calculate semantic similarity (0 to 1)
     semantic_similarity = cosine_similarity(resume_emb, job_emb)[0][0]
     
-    # Boost semantic similarity (accounts for model limitations)
-    # Apply sigmoid-like boosting to make scores more realistic
-    boosted_similarity = 1 / (1 + pow(2.718, -5 * (semantic_similarity - 0.5)))
+    # Improved boosting formula - more generous and realistic
+    # Scale from [0.3-0.9] to [0.45-0.92] to account for model behavior
+    boosted_similarity = min(0.95, max(0.40, semantic_similarity * 1.15 + 0.12))
     
     # Extract keywords with enhanced extraction
     resume_keywords = extract_keywords(resume_text)
     job_keywords = extract_keywords(job_description)
     
-    # Calculate keyword match with partial matching
+    # Calculate keyword match with improved fuzzy matching
     common_keywords = resume_keywords.intersection(job_keywords)
     
-    # Partial keyword matching (for variations like "python" vs "python3")
+    # Enhanced partial matching with fuzzy logic
     partial_matches = set()
+    similarity_scores = []
+    
     for jk in job_keywords:
         for rk in resume_keywords:
+            # Exact substring match
             if len(jk) > 3 and len(rk) > 3:
                 if jk in rk or rk in jk:
                     partial_matches.add(jk)
+                    similarity_scores.append(0.9)
+                # Character-level similarity (e.g., "react" vs "reactjs")
+                elif len(jk) > 4 and len(rk) > 4:
+                    common_chars = sum(1 for c in jk if c in rk)
+                    similarity = common_chars / max(len(jk), len(rk))
+                    if similarity > 0.7:
+                        partial_matches.add(jk)
+                        similarity_scores.append(similarity * 0.8)
     
     common_keywords.update(partial_matches)
-    keyword_match = len(common_keywords) / len(job_keywords) if len(job_keywords) > 0 else 0
+    
+    # Calculate weighted keyword match
+    base_match = len(common_keywords) / len(job_keywords) if len(job_keywords) > 0 else 0
+    fuzzy_bonus = (sum(similarity_scores) / len(job_keywords)) * 0.15 if similarity_scores and len(job_keywords) > 0 else 0
+    keyword_match = min(1.0, base_match + fuzzy_bonus)
     
     # Adjust weights based on experience level
     if experience_level == 'intern':
         # For interns: prioritize projects and skills (70% combined)
-        skills_weight = 0.55
-        experience_weight = 0.15
+        skills_weight = 0.50
+        experience_weight = 0.20
         keyword_weight = 0.30
         # Skills calculation emphasizes keyword match heavily for interns
-        skills_match = int((boosted_similarity * 0.35 + keyword_match * 0.65) * 100)
+        skills_match = int((boosted_similarity * 0.40 + keyword_match * 0.60) * 100)
     elif experience_level == 'fresher':
         # For freshers: projects and internship experience (60% combined)
         skills_weight = 0.40
         experience_weight = 0.40
         keyword_weight = 0.20
-        skills_match = int((boosted_similarity * 0.45 + keyword_match * 0.55) * 100)
+        skills_match = int((boosted_similarity * 0.50 + keyword_match * 0.50) * 100)
     else:  # experienced
         # For experienced: work experience is primary (55%)
         skills_weight = 0.35
-        experience_weight = 0.55
-        keyword_weight = 0.10
-        skills_match = int((boosted_similarity * 0.70 + keyword_match * 0.30) * 100)
+        experience_weight = 0.50
+        keyword_weight = 0.15
+        skills_match = int((boosted_similarity * 0.65 + keyword_match * 0.35) * 100)
     
-    # Experience match with boosting
-    experience_match = int(boosted_similarity * 100)
+    # Experience match - blend semantic similarity with keyword presence
+    experience_match = int((boosted_similarity * 0.85 + keyword_match * 0.15) * 100)
     
-    # Keyword match percentage
+    # Keyword match percentage with slight boost for partial matches
     keyword_match_percent = int(keyword_match * 100)
     
     # Final score calculation with adjusted weights
-    match_score = int(
+    raw_score = (
         (skills_match * skills_weight) + 
         (experience_match * experience_weight) + 
         (keyword_match_percent * keyword_weight)
     )
     
-    # Apply reasonable floor/ceiling
-    match_score = max(30, min(95, match_score))  # Keep between 30-95%
+    # Apply gentle boosting for reasonable scores
+    # Good matches should score 70-90, not 40-60
+    match_score = int(min(95, max(35, raw_score * 1.08)))
+    
+    # Ensure minimum viable score for partial matches
+    if keyword_match > 0.25 and boosted_similarity > 0.50:
+        match_score = max(match_score, 55)
     
     return match_score, skills_match, experience_match, keyword_match_percent, common_keywords
 

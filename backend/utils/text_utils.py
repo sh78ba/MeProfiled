@@ -42,22 +42,35 @@ def extract_keywords(text):
     # Extract bigrams for technical terms (e.g., "machine learning", "data science")
     bigrams = [' '.join([words[i], words[i+1]]) 
                for i in range(len(words)-1) 
-               if words[i] not in stop_words or words[i+1] not in stop_words]
+               if len(words[i]) > 2 and len(words[i+1]) > 2]
     
     # Add meaningful bigrams (technical terms, skills)
     tech_patterns = [
-        r'\b\w+\s+(learning|science|engineering|development|testing|management|analysis)\b',
-        r'\b(machine|deep|data|web|mobile|software|full|front|back)\s+\w+\b',
-        r'\b\w+\s+(js|py|sql|api|ui|ux|devops|cloud)\b'
+        r'\b\w+\s+(learning|science|engineering|development|testing|management|analysis|design|architecture)\b',
+        r'\b(machine|deep|data|web|mobile|software|full|front|back|cloud|artificial)\s+\w+\b',
+        r'\b\w+\s+(js|py|sql|api|ui|ux|devops|cloud|stack|end)\b',
+        r'\b(react|angular|vue|node|python|java|javascript|typescript|docker|kubernetes|aws|azure|gcp)\b',
+        r'\b\w+\s+(developer|engineer|analyst|designer|manager|lead|architect)\b'
     ]
     
     for pattern in tech_patterns:
         matches = re.findall(pattern, text)
-        keywords.update(matches)
+        if isinstance(matches, list):
+            for match in matches:
+                if isinstance(match, tuple):
+                    keywords.update([m for m in match if m and len(m) > 2])
+                elif match and len(match) > 2:
+                    keywords.add(match)
     
-    # Add important bigrams
-    for bigram in bigrams[:50]:  # Limit to avoid too many
-        if any(tech in bigram for tech in ['learning', 'science', 'development', 'engineering', 'testing']):
+    # Add important bigrams (limit to technical ones)
+    tech_bigram_indicators = [
+        'learning', 'science', 'development', 'engineering', 'testing', 
+        'design', 'management', 'analysis', 'stack', 'framework', 'database',
+        'server', 'client', 'backend', 'frontend', 'fullstack'
+    ]
+    
+    for bigram in bigrams:
+        if any(indicator in bigram for indicator in tech_bigram_indicators):
             keywords.add(bigram)
     
     return keywords

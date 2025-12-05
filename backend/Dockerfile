@@ -3,13 +3,14 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 COPY . .
 
 ENV PYTHONUNBUFFERED=1 \
     TRANSFORMERS_CACHE=/tmp/transformers \
-    HF_HOME=/tmp/huggingface
+    HF_HOME=/tmp/huggingface \
+    PATH=/root/.local/bin:$PATH
 
 EXPOSE 5001
 

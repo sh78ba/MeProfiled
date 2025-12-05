@@ -49,24 +49,24 @@ def calculate_match_score(resume_text, job_description, experience_level='auto')
     
     # Adjust weights based on experience level
     if experience_level == 'intern':
-        # For interns: prioritize skills and learning potential
-        skills_weight = 0.50
-        experience_weight = 0.25
-        keyword_weight = 0.25
-        # Skills calculation emphasizes keyword match for interns
-        skills_match = int((boosted_similarity * 0.4 + keyword_match * 0.6) * 100)
+        # For interns: prioritize projects and skills (70% combined)
+        skills_weight = 0.55
+        experience_weight = 0.15
+        keyword_weight = 0.30
+        # Skills calculation emphasizes keyword match heavily for interns
+        skills_match = int((boosted_similarity * 0.35 + keyword_match * 0.65) * 100)
     elif experience_level == 'fresher':
-        # For freshers: balanced approach
-        skills_weight = 0.45
-        experience_weight = 0.35
-        keyword_weight = 0.20
-        skills_match = int((boosted_similarity * 0.5 + keyword_match * 0.5) * 100)
-    else:  # experienced
-        # For experienced: semantic understanding matters more
+        # For freshers: projects and internship experience (60% combined)
         skills_weight = 0.40
-        experience_weight = 0.45
-        keyword_weight = 0.15
-        skills_match = int((boosted_similarity * 0.65 + keyword_match * 0.35) * 100)
+        experience_weight = 0.40
+        keyword_weight = 0.20
+        skills_match = int((boosted_similarity * 0.45 + keyword_match * 0.55) * 100)
+    else:  # experienced
+        # For experienced: work experience is primary (55%)
+        skills_weight = 0.35
+        experience_weight = 0.55
+        keyword_weight = 0.10
+        skills_match = int((boosted_similarity * 0.70 + keyword_match * 0.30) * 100)
     
     # Experience match with boosting
     experience_match = int(boosted_similarity * 100)
@@ -139,31 +139,37 @@ def _generate_strengths(skills_match, experience_match, keyword_match, common_ke
     strengths = []
     
     if experience_level == 'intern':
+        if skills_match >= 55:
+            strengths.append("Strong project-based technical skills demonstrated")
+        if keyword_match >= 35:
+            strengths.append("Good familiarity with relevant technologies and tools")
+        if len(common_keywords) > 4:
+            strengths.append(f"Shows knowledge of {len(common_keywords)} key technical skills from the job posting")
         if skills_match >= 60:
-            strengths.append("Good foundational technical skills for an internship role")
-        if keyword_match >= 40:
-            strengths.append("Demonstrates awareness of relevant technologies and tools")
-        if len(common_keywords) > 5:
-            strengths.append(f"Shows familiarity with {len(common_keywords)} key terms from the job posting")
-        strengths.append("Eager to learn and grow in the field")
+            strengths.append("Projects showcase practical application of relevant technologies")
+        strengths.append("Demonstrates strong learning potential and technical foundation")
     elif experience_level == 'fresher':
-        if skills_match >= 65:
-            strengths.append("Solid technical skills for an entry-level candidate")
-        if keyword_match >= 50:
-            strengths.append("Good understanding of relevant technologies and frameworks")
-        if len(common_keywords) > 8:
-            strengths.append(f"Familiar with {len(common_keywords)} important industry keywords")
-        if experience_match >= 60:
-            strengths.append("Shows academic or project experience relevant to the role")
+        if skills_match >= 60:
+            strengths.append("Solid technical skills with hands-on project experience")
+        if experience_match >= 55:
+            strengths.append("Good internship or academic project experience relevant to the role")
+        if keyword_match >= 45:
+            strengths.append("Demonstrates understanding of key technologies and frameworks")
+        if len(common_keywords) > 7:
+            strengths.append(f"Familiar with {len(common_keywords)} important technologies mentioned in job description")
+        if experience_match >= 65:
+            strengths.append("Projects and internships align well with job requirements")
     else:  # experienced
-        if skills_match >= 75:
-            strengths.append("Strong technical skills alignment with job requirements")
+        if experience_match >= 70:
+            strengths.append("Strong relevant work experience matching the role's expectations")
+        if skills_match >= 70:
+            strengths.append("Excellent technical skills alignment with job requirements")
         if experience_match >= 75:
-            strengths.append("Relevant work experience matching the role's expectations")
-        if keyword_match >= 60:
+            strengths.append("Proven track record in similar roles and responsibilities")
+        if keyword_match >= 55:
             strengths.append("Good coverage of key technologies and tools mentioned in job description")
         if len(common_keywords) > 10:
-            strengths.append(f"Demonstrates knowledge of {len(common_keywords)} relevant keywords and technologies")
+            strengths.append(f"Demonstrates expertise in {len(common_keywords)} relevant keywords and technologies")
     
     if not strengths:
         strengths.append("Shows foundational knowledge in the field")
@@ -176,27 +182,33 @@ def _generate_improvements(skills_match, experience_match, keyword_match, common
     improvements = []
     
     if experience_level == 'intern':
-        if skills_match < 60:
-            improvements.append("Build foundational skills in the key technologies mentioned in the job description")
-        if keyword_match < 40:
-            improvements.append("Learn and include relevant technical keywords in your resume")
-        improvements.append("Highlight academic projects and coursework related to the role")
-        improvements.append("Add any relevant certifications or online courses completed")
+        if skills_match < 55:
+            improvements.append("Add more technical projects showcasing skills mentioned in the job description")
+        if keyword_match < 35:
+            improvements.append("Include relevant technical skills and tools from the job posting in your projects section")
+        improvements.append("Highlight 2-3 strong projects with specific technologies and outcomes")
+        improvements.append("Emphasize coursework and certifications relevant to the role")
+        if len(common_keywords) < 5:
+            improvements.append("Learn and demonstrate key technologies mentioned in the job requirements")
     elif experience_level == 'fresher':
-        if skills_match < 65:
-            improvements.append("Strengthen technical skills to better align with job requirements")
-        if keyword_match < 50:
-            improvements.append("Include more technologies and tools mentioned in the job posting")
-        improvements.append("Emphasize personal projects and academic achievements")
-        if experience_match < 60:
-            improvements.append("Add more details about relevant coursework and hands-on experience")
+        if experience_match < 55:
+            improvements.append("Add more details about internships, projects, and hands-on experience")
+        if skills_match < 60:
+            improvements.append("Strengthen project descriptions with specific technologies and measurable outcomes")
+        if keyword_match < 45:
+            improvements.append("Include more technologies and frameworks mentioned in the job posting")
+        improvements.append("Emphasize practical experience from internships and personal projects")
+        if len(common_keywords) < 8:
+            improvements.append("Highlight experience with key tools and technologies from the job description")
     else:  # experienced
-        if skills_match < 75:
-            improvements.append("Enhance technical skills section to better match job requirements")
-        if experience_match < 75:
-            improvements.append("Highlight more relevant work experience and projects related to the role")
-        if keyword_match < 60:
+        if experience_match < 70:
+            improvements.append("Highlight more relevant work experience and accomplishments related to the role")
+        if skills_match < 70:
+            improvements.append("Emphasize technical expertise in areas mentioned in the job requirements")
+        if keyword_match < 55:
             improvements.append("Include more specific technologies, tools, and frameworks mentioned in the job description")
+        if experience_match < 75:
+            improvements.append("Add quantifiable achievements from previous roles that align with job responsibilities")
         if len(common_keywords) < 10:
             improvements.append("Add industry-specific keywords and technical terminology from the job posting")
     

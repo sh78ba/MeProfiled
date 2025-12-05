@@ -6,7 +6,9 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.11",
-        "maxLambdaSize": "50mb"
+        "maxLambdaSize": "50mb",
+        "memory": 3008,
+        "maxDuration": 60
       }
     }
   ],
@@ -21,11 +23,5 @@
     "PYTHONUNBUFFERED": "1",
     "TRANSFORMERS_CACHE": "/tmp/transformers",
     "HF_HOME": "/tmp/huggingface"
-  },
-  "functions": {
-    "app.py": {
-      "memory": 3008,
-      "maxDuration": 60
-    }
   }
 }

@@ -5,6 +5,7 @@ import { BACKEND_URL } from "./constant";
 function App() {
   const [resumeFile, setResumeFile] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("auto");
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -27,6 +28,7 @@ function App() {
     const formData = new FormData();
     formData.append("resume", resumeFile);
     formData.append("jobDescription", jobDescription);
+    formData.append("experienceLevel", experienceLevel);
 
     try {
       const response = await axios.post(`${BACKEND_URL}/analyze`, formData, {
@@ -77,8 +79,26 @@ function App() {
               </div>
 
               <div className="mb-3">
+                <label htmlFor="experience-level" className="form-label">
+                  👤 2. Select Experience Level
+                </label>
+                <select
+                  className="form-select"
+                  id="experience-level"
+                  value={experienceLevel}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                >
+                  <option value="auto">Auto Detect</option>
+                  <option value="intern">Intern</option>
+                  <option value="fresher">Fresher (0-2 years)</option>
+                  <option value="experienced">Experienced (3+ years)</option>
+                </select>
+                <small className="text-muted">Select your experience level or let AI detect it automatically</small>
+              </div>
+
+              <div className="mb-3">
                 <label htmlFor="job-description" className="form-label">
-                  📋 2. Paste Job Description
+                  📋 3. Paste Job Description
                 </label>
                 <textarea
                   className="form-control"
@@ -140,6 +160,12 @@ function App() {
                   </p>
                   <ul className="list-unstyled mt-3">
                     <li>
+                      <strong>Experience Level:</strong>{" "}
+                      <span className="badge bg-info text-dark">
+                        {analysisResult.experienceLevel.charAt(0).toUpperCase() + analysisResult.experienceLevel.slice(1)}
+                      </span>
+                    </li>
+                    <li className="mt-2">
                       <strong>Skills Match:</strong>{" "}
                       {analysisResult.skillsMatchPercent}%
                     </li>

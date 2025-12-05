@@ -11,13 +11,42 @@ function App() {
   const [error, setError] = useState("");
 
   const handleFileChange = (e) => {
-    setResumeFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (16MB max)
+      const maxSize = 16 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError("File size must be less than 16MB");
+        e.target.value = null;
+        return;
+      }
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        setError("Only PDF files are allowed");
+        e.target.value = null;
+        return;
+      }
+      setError("");
+      setResumeFile(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
     if (!resumeFile || !jobDescription) {
       setError("Please provide both a resume and a job description.");
+      return;
+    }
+
+    if (jobDescription.trim().length < 50) {
+      setError("Job description must be at least 50 characters long.");
+      return;
+    }
+
+    if (jobDescription.length > 10000) {
+      setError("Job description must be less than 10,000 characters.");
       return;
     }
 
@@ -35,10 +64,25 @@ function App() {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 120000, // 2 minutes timeout
       });
       setAnalysisResult(response.data);
+      
+      // Scroll to results
+      setTimeout(() => {
+        document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } catch (err) {
-      setError(err.response?.data?.error || "An unexpected error occurred.");
+      console.error('Analysis error:', err);
+      if (err.code === 'ECONNABORTED') {
+        setError("Request timed out. Please try again.");
+      } else if (err.response?.status === 413) {
+        setError("File is too large. Maximum size is 16MB.");
+      } else if (err.response?.status === 503) {
+        setError("Service temporarily unavailable. Please try again in a moment.");
+      } else {
+        setError(err.response?.data?.error || "An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -72,10 +116,17 @@ function App() {
                   type="file"
                   className="form-control"
                   id="resume"
-                  accept=".pdf"
+                  accept=".pdf,application/pdf"
                   onChange={handleFileChange}
                   required
                 />
+                <small className="text-muted">
+                  {resumeFile ? (
+                    <span className="text-success">✓ {resumeFile.name} ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                  ) : (
+                    "PDF only, max 16MB"
+                  )}
+                </small>
               </div>
 
               <div className="mb-3">
@@ -108,7 +159,14 @@ function App() {
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   required
+                  maxLength={10000}
                 ></textarea>
+                <small className="text-muted">
+                  {jobDescription.length} / 10,000 characters
+                  {jobDescription.length > 0 && jobDescription.length < 50 && (
+                    <span className="text-danger"> (minimum 50 characters)</span>
+                  )}
+                </small>
               </div>
             </div>
 
@@ -144,8 +202,13 @@ function App() {
         )}
 
         {analysisResult && (
-          <div className="mt-5">
+          <div className="mt-5" id="results">
             <h2 className="text-center fw-bold mb-4">Analysis Report</h2>
+            {analysisResult.processingTime && (
+              <p className="text-center text-muted small">
+                Analysis completed in {analysisResult.processingTime}s
+              </p>
+            )}
             <div className="row g-4">
               <div className="col-lg-4">
                 <div className="bg-light p-4 rounded shadow-sm h-100">

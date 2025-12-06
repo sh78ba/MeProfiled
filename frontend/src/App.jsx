@@ -105,9 +105,9 @@ function App() {
           <p className="text-muted">
             Powered by <strong>{MODEL_CONFIG.name}</strong> - {MODEL_CONFIG.description}
           </p>
-          <p className="small text-secondary">
+          {/* <p className="small text-secondary">
             {MODEL_CONFIG.qualityLevel} • Max {API_CONFIG.maxJobDescriptionLength.toLocaleString()} characters • {API_CONFIG.maxFileSize / 1024 / 1024}MB file limit
-          </p>
+          </p> */}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -180,15 +180,15 @@ function App() {
 
             <div className="col-md-6 d-flex flex-column justify-content-center align-items-center bg-light rounded p-4">
               <h4>Ready for Analysis?</h4>
-              <p className="text-muted text-center">
+              {/* <p className="text-muted text-center">
                 Our advanced {MODEL_CONFIG.name} model provides detailed, accurate analysis
-              </p>
+              </p> */}
               <button
                 type="submit"
                 className="btn btn-primary btn-lg w-100 mt-3"
                 disabled={isLoading || !resumeFile || !jobDescription}
               >
-                {isLoading ? "🤖 AI Agent analyzing..." : "🚀 Analyze with Advanced NLP"}
+                {isLoading ? "🤖 Analyzing..." : "🚀 Analyze"}
               </button>
               {!isLoading && (
                 <small className="text-muted mt-2 text-center">

@@ -23,11 +23,11 @@ class Config:
     ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*').split(',')
     CORS_MAX_AGE = 3600
     
-    # Model settings - ultra-light model for 512MB memory limit
-    MODEL_NAME = os.getenv('MODEL_NAME', 'distiluse-base-multilingual-cased-v2')  # 50MB distilled model
-    MAX_TEXT_LENGTH = 2000  # Aggressive reduction
-    MAX_SEQUENCE_LENGTH = 256  # Reduced from 384
-    EMBEDDINGS_CACHE_SIZE = 8  # Ultra minimal cache
+    # Model settings - production-grade model for Hugging Face Spaces (16GB RAM)
+    MODEL_NAME = os.getenv('MODEL_NAME', 'sentence-transformers/all-mpnet-base-v2')  # 420MB production model
+    MAX_TEXT_LENGTH = 5000  # 5000 characters
+    MAX_SEQUENCE_LENGTH = 512  # 512 tokens
+    EMBEDDINGS_CACHE_SIZE = 32  # LRU cache for embeddings
     
     # Validation settings
     MIN_JOB_DESCRIPTION_LENGTH = 50
